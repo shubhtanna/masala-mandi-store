@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card %}
+{% block title %}{{ cat['name'] }}{% endblock %}
+{% block content %}
+<section class="cat-banner" style="background-image:url('{{ unsplash(cat['photo'], 1600) }}')">
+  <div class="wrap">
+    <p class="crumbs"><a href="{{ url_for('home') }}">Home</a> / {{ cat['name'] }}</p>
+    <h1>{{ cat['name'] }} <small>{{ cat['hindi'] }}</small></h1>
+    <p>{{ cat['blurb'] }}</p>
+  </div>
+</section>
+<section class="wrap">
+  <form class="toolbar" method="get">
+    <span>{{ items|length }} products</span>
+    <label>Sort by
+      <select name="sort" onchange="this.form.submit()">
+        <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Popular</option>
+        <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: low to high</option>
+        <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: high to low</option>
+        <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Top rated</option>
+      </select>
+    </label>
+    <noscript><button>Apply</button></noscript>
+  </form>
+  <div class="grid">{% for p in items %}{{ product_card(p) }}{% endfor %}</div>
+</section>
+{% endblock %}

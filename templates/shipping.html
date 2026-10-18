@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Delivery &amp; returns{% endblock %}
+{% block content %}
+<section class="wrap narrow prose">
+  <h1 class="page-title">Delivery &amp; returns</h1>
+  <h3>Delivery</h3>
+  <p>We pack and ship within 24 hours, Monday to Saturday. Most orders arrive in 3–6 days. Delivery is free on orders above {{ FREE_DELIVERY_FROM|rupees }}; below that it's ₹49. The minimum order is {{ MIN_ORDER|rupees }}.</p>
+  <p>We deliver across India except the North-East states and the Andaman &amp; Nicobar Islands for now. We're working on it.</p>
+  <h3>Cash on delivery</h3>
+  <p>Available on all orders, with a ₹30 handling fee.</p>
+  <h3>Returns</h3>
+  <p>Food items can't be returned once opened. If something arrives damaged, leaking or not as described, message us within 48 hours with a photo and we'll replace it or refund you.</p>
+</section>
+{% endblock %}

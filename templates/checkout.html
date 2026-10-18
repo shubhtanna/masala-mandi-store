@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% macro field(name, label, type='text', extra='') %}
+  <label class="field {% if errors.get(name) %}has-error{% endif %}">
+    <span>{{ label }}</span>
+    <input type="{{ type }}" name="{{ name }}" value="{{ form.get(name, '') }}" {{ extra|safe }}>
+    {% if errors.get(name) %}<em>{{ errors[name] }}</em>{% endif %}
+  </label>
+{% endmacro %}
+{% block content %}
+<section class="wrap">
+  <h1 class="page-title">Checkout</h1>
+  <div class="cart-layout">
+    <form method="post" class="checkout-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <h3>Contact</h3>
+      <div class="two">
+        {{ field('name', 'Full name', extra='autocomplete="name"') }}
+        {{ field('phone', 'Mobile number', 'tel', 'autocomplete="tel"') }}
+      </div>
+      {{ field('email', 'Email (optional, for the invoice)', 'email', 'autocomplete="email"') }}
+      <h3>Delivery address</h3>
+      {{ field('address', 'House no., building, street, area', extra='autocomplete="street-address"') }}
+      <div class="two">
+        {{ field('city', 'City', extra='autocomplete="address-level2"') }}
+        {{ field('pincode', 'PIN code', extra='inputmode="numeric" maxlength="6" autocomplete="postal-code"') }}
+      </div>
+      <h3>Payment</h3>
+      <div class="pay {% if errors.get('payment') %}has-error{% endif %}">
+        <label><input type="radio" name="payment" value="upi" {% if (form.get('payment') or 'upi') == 'upi' %}checked{% endif %}> <b>UPI</b> <small>We'll send a UPI payment link on WhatsApp after you order</small></label>
+        <label><input type="radio" name="payment" value="cod" {% if form.get('payment') == 'cod' %}checked{% endif %}> <b>Cash on delivery</b> <small>+ {{ cod_fee|rupees }} handling</small></label>
+        {% if errors.get('payment') %}<em>{{ errors['payment'] }}</em>{% endif %}
+      </div>
+      <label class="field">
+        <span>Note for us (optional)</span>
+        <input type="text" name="notes" value="{{ form.get('notes', '') }}" placeholder="E.g. please grind the cardamom">
+      </label>
+      <button class="btn wide">Place order</button>
+      <p class="small muted center">Demo store: no payment is taken and nothing is shipped.</p>
+    </form>
+    <aside class="summary">
+      <h3>Your order</h3>
+      {% for l in cart['lines'] %}
+        <p><span>{{ l['name'] }} · {{ l['label'] }} × {{ l['qty'] }}</span><span>{{ l['line_total']|rupees }}</span></p>
+      {% endfor %}
+      <p><span>Delivery</span><span>{{ 'Free' if cart['delivery'] == 0 else cart['delivery']|rupees }}</span></p>
+      <p class="total"><span>Total</span><span>{{ cart['total']|rupees }}</span></p>
+      <p class="small muted">COD orders add {{ cod_fee|rupees }}.</p>
+    </aside>
+  </div>
+</section>
+{% endblock %}

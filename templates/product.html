@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card %}
+{% block title %}{{ p['name'] }}{% endblock %}
+{% block content %}
+<section class="wrap">
+  <p class="crumbs"><a href="{{ url_for('home') }}">Home</a> / <a href="{{ url_for('category', slug=p['category']) }}">{{ p['category_name'] }}</a> / {{ p['name'] }}</p>
+  <div class="pdp">
+    <div class="pdp-img">
+      <img src="{{ url_for('static', filename='img/products/' ~ p['slug'] ~ '.svg') }}" alt="{{ p['name'] }} pack">
+    </div>
+    <div class="pdp-info">
+      <p class="pdp-hindi">{{ p['hindi'] }}</p>
+      <h1>{{ p['name'] }}</h1>
+      <p class="card-meta">★ {{ '%.1f'|format(p['rating']) }} · {{ p['reviews'] }} reviews · Origin: {{ p['origin'] }}</p>
+
+      <form method="post" action="{{ url_for('cart_add') }}" class="buy">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <p class="label">Pack size</p>
+        <div class="packs">
+          {% for v in variants %}
+            <label class="pack">
+              <input type="radio" name="sku" value="{{ v['sku'] }}" data-price="{{ v['price'] }}" {% if loop.first %}checked{% endif %}>
+              <span><b>{{ v['label'] }}</b>{{ v['price']|rupees }}<small>₹{{ '%.1f'|format(v['price'] * 100 / v['grams']) }} per 100 {{ 'ml' if 'L' in v['label'] else 'g' }}</small></span>
+            </label>
+          {% endfor %}
+        </div>
+        <p class="price-now" data-price-target>{{ variants[0]['price']|rupees }}</p>
+        <p class="small muted">MRP incl. of all taxes</p>
+        <div class="qty-row">
+          <label class="label" for="qty">Qty</label>
+          <div class="stepper">
+            <button type="button" data-step="-1" aria-label="Less">−</button>
+            <input id="qty" name="qty" type="number" min="1" max="20" value="1">
+            <button type="button" data-step="1" aria-label="More">+</button>
+          </div>
+        </div>
+        {% if p['in_stock'] %}
+          <button class="btn wide">Add to bag</button>
+        {% else %}
+          <button class="btn wide" disabled>Out of stock</button>
+          <p class="small muted">Back in about a week, after the new crop arrives.</p>
+        {% endif %}
+      </form>
+
+      <div class="pdp-text">
+        <h3>About</h3>
+        <p>{{ p['description'] }}</p>
+        <h3>How to use</h3>
+        <p>{{ p['uses'] }}</p>
+        <h3>Storage</h3>
+        <p>Store in an airtight jar away from sunlight. Best within 9 months of packing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% if related %}
+<section class="wrap">
+  <h2 class="section-title">You might also like</h2>
+  <div class="grid">{% for r in related %}{{ product_card(r) }}{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card %}
+{% block title %}Fresh Spices, Masalas &amp; Dals Online{% endblock %}
+{% block content %}
+<section class="hero" style="background-image:url('{{ unsplash('1532336414038-cf19250c5757', 1800) }}')">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Since 1987 · Siyaganj, Indore</p>
+    <h1>Spices that smell like <em>your nani's kitchen.</em></h1>
+    <p>Sourced from the farms and mandis we've bought from for three generations. Ground every week, packed the day it ships.</p>
+    <a class="btn" href="{{ url_for('category', slug='masala-blends') }}">Shop masalas</a>
+    <a class="btn ghost" href="{{ url_for('category', slug='whole-spices') }}">Whole spices</a>
+  </div>
+</section>
+
+<section class="wrap promise">
+  <div><b>Ground weekly</b><span>Never sitting in a warehouse</span></div>
+  <div><b>No fillers</b><span>No colour, starch or salt added</span></div>
+  <div><b>Lab tested</b><span>Every batch, for purity</span></div>
+  <div><b>Cash on delivery</b><span>Across most of India</span></div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Shop by category</h2>
+  <div class="cats">
+    {% for c in nav_categories %}
+      <a class="cat" href="{{ url_for('category', slug=c['slug']) }}">
+        <img src="{{ unsplash(c['photo'], 600) }}" alt="" loading="lazy">
+        <span><b>{{ c['name'] }}</b><small>{{ c['hindi'] }}</small></span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Bestsellers</h2>
+  <div class="grid">{% for p in bestsellers %}{{ product_card(p) }}{% endfor %}</div>
+</section>
+
+<section class="wrap story">
+  <img src="{{ unsplash('1509358271058-acd22cc93898', 1000) }}" alt="Spoons of ground spices and peppercorns" loading="lazy">
+  <div>
+    <p class="eyebrow">Our story</p>
+    <h2>Three generations in Siyaganj mandi</h2>
+    <p>Our grandfather Ramesh Agrawal opened a small spice shop in Indore's wholesale market in 1987. We still buy from many of the same farmers, and still roast our garam masala the way he did: each spice separately, in iron kadhais.</p>
+    <a href="{{ url_for('about') }}" class="link">Read more →</a>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Pantry staples</h2>
+  <div class="grid">{% for p in fresh %}{{ product_card(p) }}{% endfor %}</div>
+</section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Order placed{% endblock %}
+{% block content %}
+<section class="wrap narrow center">
+  <p class="eyebrow">Dhanyavaad!</p>
+  <h1 class="page-title">Your order is placed</h1>
+  <p>Order number <b>{{ order['id'] }}</b> · {{ order['total']|rupees }}</p>
+  <p class="muted">
+    {% if order['payment'] == 'upi' %}We'll send a UPI payment link to {{ order['phone'] }} on WhatsApp within a few minutes.
+    {% else %}Please keep {{ order['total']|rupees }} ready for the delivery partner.{% endif %}
+  </p>
+  <table class="cart-table compact">
+    {% for i in order['items'] %}
+      <tr><td>{{ i['name'] }} · {{ i['pack'] }}</td><td>× {{ i['qty'] }}</td><td>{{ (i['price'] * i['qty'])|rupees }}</td></tr>
+    {% endfor %}
+  </table>
+  <p class="muted">Packed fresh and shipped within 24 hours. Delivery in 3–6 days.</p>
+  <a class="btn" href="{{ url_for('home') }}">Continue shopping</a>
+</section>
+{% endblock %}

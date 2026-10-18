@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Your bag{% endblock %}
+{% block content %}
+<section class="wrap">
+  <h1 class="page-title">Your bag</h1>
+  {% if not cart['lines'] %}
+    <div class="empty">
+      <p>Your bag is empty.</p>
+      <a class="btn" href="{{ url_for('category', slug='masala-blends') }}">Browse masalas</a>
+    </div>
+  {% else %}
+    <div class="cart-layout">
+      <table class="cart-table">
+        <thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
+        <tbody>
+        {% for l in cart['lines'] %}
+          <tr>
+            <td class="cart-item">
+              <img src="{{ url_for('static', filename='img/products/' ~ l['slug'] ~ '.svg') }}" alt="">
+              <span><a href="{{ url_for('product', slug=l['slug']) }}">{{ l['name'] }}</a><small>{{ l['label'] }} · {{ l['sku'] }}</small></span>
+            </td>
+            <td>{{ l['price']|rupees }}</td>
+            <td>
+              <form method="post" action="{{ url_for('cart_update') }}" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="sku" value="{{ l['sku'] }}">
+                <input type="number" name="qty" value="{{ l['qty'] }}" min="0" max="20" class="qty-input" aria-label="Quantity">
+                <button class="link-btn">Update</button>
+              </form>
+              <form method="post" action="{{ url_for('cart_update') }}" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="sku" value="{{ l['sku'] }}">
+                <input type="hidden" name="qty" value="0">
+                <button class="link-btn muted">Remove</button>
+              </form>
+            </td>
+            <td><b>{{ l['line_total']|rupees }}</b></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <aside class="summary">
+        <h3>Summary</h3>
+        <p><span>Subtotal</span><span>{{ cart['subtotal']|rupees }}</span></p>
+        <p><span>Delivery</span><span>{{ 'Free' if cart['delivery'] == 0 else cart['delivery']|rupees }}</span></p>
+        <p class="total"><span>Total</span><span>{{ cart['total']|rupees }}</span></p>
+        {% if cart['subtotal'] < MIN_ORDER %}
+          <p class="note warn">Minimum order is {{ MIN_ORDER|rupees }}. Add {{ (MIN_ORDER - cart['subtotal'])|rupees }} more to check out.</p>
+          <button class="btn wide" disabled>Checkout</button>
+        {% else %}
+          {% if cart['subtotal'] < FREE_DELIVERY_FROM %}
+            <p class="note">Add {{ (FREE_DELIVERY_FROM - cart['subtotal'])|rupees }} more for free delivery.</p>
+          {% endif %}
+          <a class="btn wide" href="{{ url_for('checkout') }}">Checkout</a>
+        {% endif %}
+      </aside>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

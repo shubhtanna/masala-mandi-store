@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<section class="wrap">
+  <h1 class="page-title">Search</h1>
+  {% if q %}
+    <p class="muted">{{ items|length }} result{{ '' if items|length == 1 else 's' }} for “{{ q }}”</p>
+    {% if not items %}<p>Try a Hindi name like <a href="{{ url_for('search', q='haldi') }}">haldi</a> or <a href="{{ url_for('search', q='jeera') }}">jeera</a>.</p>{% endif %}
+  {% else %}
+    <p class="muted">Search by English or Hindi name.</p>
+  {% endif %}
+  <div class="grid">{% for p in items %}{{ product_card(p) }}{% endfor %}</div>
+</section>
+{% endblock %}

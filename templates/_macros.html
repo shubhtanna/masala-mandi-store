@@ -1,0 +1,13 @@
+{% macro product_card(p) %}
+<a class="card" href="{{ url_for('product', slug=p['slug']) }}">
+  <div class="card-img">
+    <img src="{{ url_for('static', filename='img/products/' ~ p['slug'] ~ '.svg') }}" alt="{{ p['name'] }}" loading="lazy">
+    {% if p['bestseller'] %}<span class="tag">Bestseller</span>{% endif %}
+    {% if not p['in_stock'] %}<span class="tag grey">Out of stock</span>{% endif %}
+  </div>
+  <p class="card-hindi">{{ p['hindi'] }}</p>
+  <p class="card-name">{{ p['name'] }}</p>
+  <p class="card-meta">★ {{ '%.1f'|format(p['rating']) }} · {{ p['reviews'] }} reviews</p>
+  <p class="card-price">{% if p['pack_count'] > 1 %}from {% endif %}{{ p['from_price']|rupees }}</p>
+</a>
+{% endmacro %}
