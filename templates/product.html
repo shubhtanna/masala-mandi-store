@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% from "_macros.html" import product_card %}
 {% block title %}{{ p['name'] }}{% endblock %}
+{% block head %}
+<script type="application/ld+json">{{ jsonld|tojson }}</script>
+{% endblock %}
 {% block content %}
 <section class="wrap">
   <p class="crumbs"><a href="{{ url_for('home') }}">Home</a> / <a href="{{ url_for('category', slug=p['category']) }}">{{ p['category_name'] }}</a> / {{ p['name'] }}</p>

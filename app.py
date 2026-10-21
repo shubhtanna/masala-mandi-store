@@ -2,7 +2,7 @@ import os
 import secrets
 import time
 
-from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
+from flask import Flask, Response, abort, flash, redirect, render_template, request, session, url_for
 from flask_wtf.csrf import CSRFProtect
 
 import db
@@ -116,7 +116,24 @@ def product(slug):
         abort(404)
     variants = db.get_db().execute("SELECT * FROM variants WHERE product_id = ? ORDER BY position", (p["id"],)).fetchall()
     related = product_rows("p.category = ? AND p.id != ?", (p["category"], p["id"]))[:4]
-    return render_template("product.html", p=p, variants=variants, related=related)
+    default = variants[0]
+    jsonld = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": p["name"],
+        "description": p["description"],
+        "image": url_for("static", filename=f"img/products/{p['slug']}.svg", _external=True),
+        "sku": default["sku"],
+        "url": url_for("product", slug=p["slug"], _external=True),
+        "offers": {
+            "@type": "Offer",
+            "price": default["price"],
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock" if p["in_stock"] else "https://schema.org/OutOfStock",
+            "url": url_for("product", slug=p["slug"], _external=True),
+        },
+    }
+    return render_template("product.html", p=p, variants=variants, related=related, jsonld=jsonld)
 
 
 @app.get("/search")
@@ -160,7 +177,8 @@ def cart_add():
 
 @app.get("/cart")
 def cart_view():
-    return render_template("cart.html", cart=cart())
+    items_param = ",".join(f"{l['sku']}:{l['qty']}" for l in cart()["lines"])
+    return render_template("cart.html", cart=cart(), items_param=items_param)
 
 
 @app.post("/cart/update")
@@ -181,12 +199,34 @@ def cart_update():
 
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
+    # A shareable checkout link (/checkout?items=<sku>:<qty>,…) rebuilds the cart
+    # from the URL so the same items open on any device, without cookies.
+    items_param = request.args.get("items", "")
+    if items_param:
+        wanted = {}
+        for part in items_param.split(","):
+            sku, _, qty = part.partition(":")
+            sku = sku.strip()
+            if sku:
+                wanted[sku] = max(1, min(20, qty.isdigit() and int(qty) or 1))
+        if wanted:
+            marks = ",".join("?" * len(wanted))
+            rows = db.get_db().execute(
+                f"SELECT v.sku, p.in_stock FROM variants v JOIN products p ON p.id = v.product_id WHERE v.sku IN ({marks})",
+                tuple(wanted),
+            ).fetchall()
+            rebuilt = {}
+            for r in rows:
+                if r["in_stock"]:
+                    rebuilt[r["sku"]] = wanted[r["sku"]]
+            session["cart"] = rebuilt
     c = cart()
     if c["count"] == 0:
         return redirect(url_for("cart_view"))
     if c["subtotal"] < MIN_ORDER:
-        flash(f"Minimum order is {rupees(MIN_ORDER)}. Add a little more to check out.", "error")
-        return redirect(url_for("cart_view"))
+        # Show the order summary with the minimum-order notice rather than
+        # bouncing the visitor back to the cart.
+        return render_template("checkout.html", cart=c, form={}, errors={}, cod_fee=COD_FEE, below_minimum=True)
 
     form = {k: request.form.get(k, "").strip() for k in ("name", "phone", "email", "address", "city", "pincode", "payment", "notes")}
     errors = {}
@@ -236,6 +276,41 @@ def order_done(order_id):
     if not order:
         abort(404)
     return render_template("order.html", order=order)
+
+
+@app.get("/sitemap.xml")
+def sitemap():
+    urls = [url_for("home", _external=True)]
+    urls += [url_for("category", slug=c["slug"], _external=True) for c in categories()]
+    urls += [url_for("product", slug=r["slug"], _external=True) for r in product_rows()]
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    xml += [f"<url><loc>{u}</loc></url>" for u in urls]
+    xml.append("</urlset>")
+    return Response("\n".join(xml), mimetype="application/xml")
+
+
+@app.get("/llms.txt")
+def llms_txt():
+    lines = [
+        "# Masala Mandi",
+        "",
+        "Masala Mandi is an Indore spice shop selling single-origin whole spices, stone-ground masalas, unpolished dals and staples, packed fresh since 1987.",
+        "",
+        "## Products",
+        "",
+    ]
+    for r in product_rows():
+        lines.append(f"- [{r['name']}]({url_for('product', slug=r['slug'])}): {rupees(r['from_price'])}")
+    lines += [
+        "",
+        "## How to buy",
+        "",
+        "1. Open a product page and submit its \"Add to bag\" form (POST with the sku and qty fields; the form includes a CSRF token that is rendered in the page HTML).",
+        "2. Open /cart to review the bag. The Checkout link there carries the items as /checkout?items=<sku>:<qty>,<sku>:<qty>, so the same items can be opened on any device without cookies.",
+        "3. The checkout page shows the order summary and a delivery form; submitting it places the order. Minimum order is ₹299.",
+    ]
+    return Response("\n".join(lines) + "\n", mimetype="text/plain")
 
 
 @app.errorhandler(404)
