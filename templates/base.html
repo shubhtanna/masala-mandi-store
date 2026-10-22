@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Yeseva+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}">
+  {% block head %}{% endblock %}
 </head>
 <body>
   <div class="strip">Free delivery above {{ FREE_DELIVERY_FROM|rupees }} · Minimum order {{ MIN_ORDER|rupees }} · Cash on delivery available</div>

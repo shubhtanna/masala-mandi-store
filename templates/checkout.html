@@ -37,6 +37,9 @@
       </label>
       <button class="btn wide">Place order</button>
       <p class="small muted center">Demo store: no payment is taken and nothing is shipped.</p>
+      {% if below_minimum %}
+        <p class="note warn">Minimum order is {{ MIN_ORDER|rupees }}. Add {{ (MIN_ORDER - cart['subtotal'])|rupees }} more to place the order.</p>
+      {% endif %}
     </form>
     <aside class="summary">
       <h3>Your order</h3>

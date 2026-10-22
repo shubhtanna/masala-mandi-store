@@ -44,14 +44,12 @@
         <p><span>Subtotal</span><span>{{ cart['subtotal']|rupees }}</span></p>
         <p><span>Delivery</span><span>{{ 'Free' if cart['delivery'] == 0 else cart['delivery']|rupees }}</span></p>
         <p class="total"><span>Total</span><span>{{ cart['total']|rupees }}</span></p>
+        {% if cart['subtotal'] < FREE_DELIVERY_FROM %}
+          <p class="note">Add {{ (FREE_DELIVERY_FROM - cart['subtotal'])|rupees }} more for free delivery.</p>
+        {% endif %}
+        <a class="btn wide" href="{{ url_for('checkout', items=items_param) }}">Checkout</a>
         {% if cart['subtotal'] < MIN_ORDER %}
-          <p class="note warn">Minimum order is {{ MIN_ORDER|rupees }}. Add {{ (MIN_ORDER - cart['subtotal'])|rupees }} more to check out.</p>
-          <button class="btn wide" disabled>Checkout</button>
-        {% else %}
-          {% if cart['subtotal'] < FREE_DELIVERY_FROM %}
-            <p class="note">Add {{ (FREE_DELIVERY_FROM - cart['subtotal'])|rupees }} more for free delivery.</p>
-          {% endif %}
-          <a class="btn wide" href="{{ url_for('checkout') }}">Checkout</a>
+          <p class="note warn">Minimum order is {{ MIN_ORDER|rupees }}. Add {{ (MIN_ORDER - cart['subtotal'])|rupees }} more to place the order.</p>
         {% endif %}
       </aside>
     </div>
